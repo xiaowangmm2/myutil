@@ -1,0 +1,179 @@
+define([], function(require, exports, module) {
+    var timeChange = function(type, timeId) {
+        if (type == "day") {
+            $("#ms-report-type-day" + timeId).addClass("report-timepicker");
+            $("#ms-report-type-month" + timeId).removeClass("report-timepicker");
+            $("#ms-report-type-year" + timeId).removeClass("report-timepicker");
+            $("#ms-report-type-week" + timeId).removeClass("report-timepicker");
+            $("#ms-report-type-custom" + timeId).removeClass("report-timepicker");
+        } else if (type == "week") {
+            $("#ms-report-type-week" + timeId).addClass("report-timepicker");
+            $("#ms-report-type-month" + timeId).removeClass("report-timepicker");
+            $("#ms-report-type-year" + timeId).removeClass("report-timepicker");
+            $("#ms-report-type-day" + timeId).removeClass("report-timepicker");
+            $("#ms-report-type-custom" + timeId).removeClass("report-timepicker");
+        } else if (type == "month") {
+            $("#ms-report-type-month" + timeId).addClass("report-timepicker");
+            $("#ms-report-type-day" + timeId).removeClass("report-timepicker");
+            $("#ms-report-type-year" + timeId).removeClass("report-timepicker");
+            $("#ms-report-type-week" + timeId).removeClass("report-timepicker");
+            $("#ms-report-type-custom" + timeId).removeClass("report-timepicker");
+        } else if (type == "year") {
+            $("#ms-report-type-year" + timeId).addClass("report-timepicker");
+            $("#ms-report-type-day" + timeId).removeClass("report-timepicker");
+            $("#ms-report-type-month" + timeId).removeClass("report-timepicker");
+            $("#ms-report-type-week" + timeId).removeClass("report-timepicker");
+            $("#ms-report-type-custom" + timeId).removeClass("report-timepicker");
+        } else {
+            $("#ms-report-type-year" + timeId).removeClass("report-timepicker");
+            $("#ms-report-type-month" + timeId).removeClass("report-timepicker");
+            $("#ms-report-type-day" + timeId).removeClass("report-timepicker");
+            $("#ms-report-type-week" + timeId).removeClass("report-timepicker");
+            $("#ms-report-type-custom" + timeId).addClass("report-timepicker");
+        }
+    };
+    var rmpEcharts = App.echarts;
+    /**
+     * [msPieChartOption description]pie的chart的配置
+     * @author wanghaiyan
+     * @date   2015-12-17
+     * @param  {[type]}   data  [description]数据
+     * @param  {[type]}   color [description]颜色
+     * @return {[type]}         [description]
+     */
+    var msPieChartOption = function(data, color) {
+        var value = data;
+        var otherValue = 100 - value;
+        var labelTop = {
+            normal: {
+                label: {
+                    show: false,
+                    position: 'center',
+                    formatter: '{b}',
+                    textStyle: {
+                        baseline: 'bottom'
+                    }
+                },
+                labelLine: {
+                    show: false
+                }
+            }
+        };
+        var labelFromatter = {
+            normal: {
+                label: {
+                    formatter: function(params) {
+                        return 100 - params.value + '%'
+                    },
+                    textStyle: {
+                        baseline: 'top'
+                    }
+                }
+            },
+        }
+        var labelBottom = {
+            normal: {
+                color: '#ccc',
+                label: {
+                    show: false,
+                    position: 'center'
+                },
+                labelLine: {
+                    show: false
+                }
+            },
+            emphasis: {
+                color: 'rgba(0,0,0,0)'
+            }
+        };
+        var radius = [40, 55];
+        var option = {
+            color: [color],
+            series: [{
+                type: 'pie',
+                radius: radius,
+                itemStyle: labelFromatter,
+                data: [{
+                    name: 'other',
+                    value: otherValue,
+                    itemStyle: labelBottom
+                }, {
+                    name: name,
+                    value: value,
+                    itemStyle: labelTop
+                }]
+            }]
+        };
+        return option;
+    };
+    /**
+     * [msBarChartOption description]柱状图的option
+     * @author wanghaiyan
+     * @date   2015-12-17
+     * @param  {[type]}   data   [description]数据
+     * @param  {[type]}   legend [description]图列
+     * @param  {[type]}   color  [description]颜色
+     * @param  {String}   series [description]列项
+     * @return {[type]}          [description]
+     */
+    var msBarChartOption = function(chartOption) {
+        var length = chartOption.data.sxAxis != null ? chartOption.data.sxAxis.length : 0;
+        var rotate = length > 12 ? rotate = 45 : 0;
+        var option = {
+            color: chartOption.color,
+            tooltip: {
+                trigger: 'item'
+            },
+            legend: chartOption.legend,
+            xAxis: [{
+                type: 'category',
+                data: chartOption.data.sxAxis,
+                axisLine: rmpEcharts.axisLine,
+                axisLabel: { //坐标轴文本标签选项
+                    show: true,
+                    rotate: rotate,
+                    textStyle: rmpEcharts.textStyle
+                },
+                splitLine: {
+                    show: false
+                },
+                axisTick: rmpEcharts.axisTick
+            }],
+            yAxis: [{
+                type: 'value',
+                axisLine: rmpEcharts.axisLine,
+                axisLabel: {
+                    formatter: chartOption.yAxisFormatter ? chartOption.yAxisFormatter : '{value}',
+                    textStyle: rmpEcharts.textStyle
+                },
+                splitLine: rmpEcharts.splitLine
+            }, {
+                type: 'value',
+                axisLine: rmpEcharts.axisLine,
+                axisLabel: {
+                    formatter: '{value}',
+                    textStyle: rmpEcharts.textStyle
+                },
+                splitLine: rmpEcharts.splitLine
+            }],
+            series: chartOption.series
+        };
+        return option;
+    }
+    var weekChangeEvent = function($input, $hiddenInput) {
+        var date = new Date($hiddenInput.val().replace(/-/g, '/'));
+        var time = date.getTime();
+        var day = date.getDay() || 7;
+
+        var beginTime = window.App.util.dateToString(time - 24 * 60 * 60 * 1000 * (day - 1));
+        var endTime = window.App.util.dateToString(time + 24 * 60 * 60 * 1000 * (7 - day));
+
+        $input.val(beginTime + '至' + endTime);
+    };
+    module.exports = {
+        timeChange: timeChange,
+        msPieChartOption: msPieChartOption,
+        weekChangeEvent: weekChangeEvent,
+        msBarChartOption: msBarChartOption
+    };
+});
